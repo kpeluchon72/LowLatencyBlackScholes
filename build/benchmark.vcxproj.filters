@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\benchmark.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\workload.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\pricing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{A96B1329-D9B7-3A9D-83C6-A996B689D580}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
