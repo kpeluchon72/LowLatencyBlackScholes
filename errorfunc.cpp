@@ -29,7 +29,7 @@ double normalCDFfast(double x) {
 
 }
 
-
+// logistic cubic cdf approximation but loses accuracy
 inline double logisticCubicCDFAppoximation(double x) {
     constexpr double A = 1.59760287;
     constexpr double B = 0.07056410;
