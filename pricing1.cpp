@@ -1,4 +1,4 @@
-#include "pricing.hpp"
+#include "pricing1.hpp"
 
 double normalCDF(double x) {
     return 0.5 * std::erfc(
