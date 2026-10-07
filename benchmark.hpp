@@ -20,14 +20,10 @@ struct BenchmarkResult {
 
 double calculateChecksum(const std::vector<double>& prices);
 
-template <
-    void (*PricingFunction)(
-        const Workload&,
-        std::vector<double>&
-    )
->
+template <typename PricingFunction>
 BenchmarkResult runBenchmark(
     const Workload& workload,
+    PricingFunction pricingFunction,
     int warmupRuns = 3,
     int measuredRuns = 15
 ) {
@@ -41,7 +37,7 @@ BenchmarkResult runBenchmark(
     double checksum = 0.0;
 
     for (int i = 0; i < warmupRuns; ++i) {
-        PricingFunction(workload, prices);
+        pricingFunction(workload, prices);
 
         checksum += calculateChecksum(prices);
     }
@@ -52,7 +48,7 @@ BenchmarkResult runBenchmark(
     for (int run = 0; run < measuredRuns; ++run) {
         auto start = Clock::now();
 
-        PricingFunction(workload, prices);
+        pricingFunction(workload, prices);
 
         auto end = Clock::now();
 

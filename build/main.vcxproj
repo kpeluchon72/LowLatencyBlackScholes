@@ -352,6 +352,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\benchmark.cpp" />
     <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\workload.cpp" />
     <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\pricing1.cpp" />
+    <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\pricing2.cpp" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
