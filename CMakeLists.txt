@@ -7,6 +7,7 @@ add_executable(main
     benchmark.cpp
     workload.cpp
     pricing1.cpp
+    pricing2.cpp
 )
 
 target_compile_features(main PRIVATE cxx_std_17)
