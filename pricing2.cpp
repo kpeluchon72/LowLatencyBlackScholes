@@ -38,7 +38,7 @@ void priceV2(
             double d2 = d1 - option.sigmaSqrtT;
 
             prices[index++] = S * normalCDF(d1) - option.discountedK * normalCDF(d2);
-
+            
         }
     }
 }

@@ -4,9 +4,12 @@
 #include <iomanip>
 #include <immintrin.h>
 
+
+constexpr double INVERSE_SQRT2 = 0.70710678118654746;
+
 double normalCDF(double x) {
     return 0.5 * std::erfc(
-        -x / std::sqrt(2.0)
+        -x * INVERSE_SQRT2
     );
 }
 
@@ -29,7 +32,7 @@ double normalCDFfast(double x) {
 
 }
 
-// logistic cubic cdf approximation but loses accuracy
+// logistic cubic cdf approximation but loses a lot more accuracy
 inline double logisticCubicCDFAppoximation(double x) {
     constexpr double A = 1.59760287;
     constexpr double B = 0.07056410;
@@ -82,7 +85,6 @@ int main() {
 
     auto end3 = Clock::now();
 
-
     std::chrono::duration<double, std::milli> elapsed1 =
         end1 - start1;
 
@@ -92,20 +94,21 @@ int main() {
     std::chrono::duration<double, std::milli> elapsed3 =
         end3 - start3;
 
+    
     std::cout << std::setprecision(17);
-
     std::cout << "std::erfc: " << elapsed1.count() << " ms\n";
     std::cout << "Taylor:    " << elapsed2.count() << " ms\n";
     std::cout << "LogCubic:  " << elapsed3.count() << "ms\n";
     std::cout << "std:       " << normalCDF(5) << "\n";
-
     std::cout << "Speedup1:  "
               << elapsed1.count() / elapsed2.count()
               << "x\n";
     
 
     // Prevent compiler from deleting calculations
-    std::cout << "Checksums: " << sum1 << " " << sum2 << '\n';
+    std::cout << "Checksums: " << sum1 << " " << sum2 << " " << sum3 << '\n';
+
+    std::cout << 1 / std::sqrt(2.0) << "\n";
 
     return 0;
 }
