@@ -3,6 +3,11 @@
 #include <cmath>
 #include <iomanip>
 #include <immintrin.h>
+#include <algorithm>
+#include <chrono>
+#include <numeric>
+#include <string>
+#include <vector>
 
 
 constexpr double INVERSE_SQRT2 = 0.70710678118654746;
@@ -32,6 +37,42 @@ double normalCDFfast(double x) {
 
 }
 
+// Polynomial rational approximation, fast and fairly accurate, 
+// more than enough precision for black scholes computations
+inline double polynomialRational(double x) {
+    constexpr double INV_SQRT_2PI =
+        0.3989422804014327;
+
+    constexpr double p  = 0.2316419;
+    constexpr double b1 = 0.319381530;
+    constexpr double b2 = -0.356563782;
+    constexpr double b3 = 1.781477937;
+    constexpr double b4 = -1.821255978;
+    constexpr double b5 = 1.330274429;
+
+    if (x >= 6.0)
+        return 1.0;
+
+    if (x <= -6.0)
+        return 0.0;
+
+    bool negative = x < 0.0;
+
+    double z = std::abs(x);
+
+    double t = 1.0 / (1 + p * z);
+
+    double poly = t*(b1 + t*(b2 + t*(b3 + t*(b4 + b5*t))));
+    double pdf = INV_SQRT_2PI * std::exp(-0.5 * z * z);
+
+    double cdf = 1 - pdf*poly;
+
+    return negative ? 1.0 - cdf : cdf;
+
+}
+
+
+
 // logistic cubic cdf approximation but loses a lot more accuracy
 inline double logisticCubicCDFAppoximation(double x) {
     constexpr double A = 1.59760287;
@@ -46,70 +87,229 @@ inline double logisticCubicCDFAppoximation(double x) {
 }
 
 
-constexpr int N = 10'000'000;
+struct BenchmarkResult {
+    double medianMs;
+    double meanMs;
+    double minMs;
+    double maxMs;
+    double nsPerCall;
+    double checksum;
+};
 
-int main() {
+
+template <double (*CDF)(double)>
+BenchmarkResult benchmarkCDF(
+    const std::vector<double>& inputs,
+    int warmupRuns = 3,
+    int measuredRuns = 15
+) {
     using Clock = std::chrono::steady_clock;
 
-    double sum1 = 0.0;
+    const std::size_t N = inputs.size();
 
-    auto start1 = Clock::now();
+    std::vector<double> outputs(N);
 
-    for (int i = 0; i < N; ++i) {
-        double x = -3.0 + 6.0 * i / N;
-        sum1 += normalCDF(x);
+    for (int run = 0; run < warmupRuns; ++run) {
+
+        for (std::size_t i = 0; i < N; ++i) {
+            outputs[i] = CDF(inputs[i]);
+        }
     }
 
-    auto end1 = Clock::now();
+    std::vector<double> times;
+    times.reserve(measuredRuns);
 
-    double sum2 = 0.0;
+    for (int run = 0; run < measuredRuns; ++run) {
 
-    auto start2 = Clock::now();
+        auto start = Clock::now();
 
-    for (int i = 0; i < N; ++i) {
-        double x = -3.0 + 6.0 * i / N;
-        sum2 += normalCDFfast(x);
+        for (std::size_t i = 0; i < N; ++i) {
+            outputs[i] = CDF(inputs[i]);
+        }
+
+        auto end = Clock::now();
+
+        std::chrono::duration<double, std::milli> elapsed =
+            end - start;
+
+        times.push_back(elapsed.count());
     }
 
-    auto end2 = Clock::now();
 
+    double checksum =
+        std::accumulate(
+            outputs.begin(),
+            outputs.end(),
+            0.0
+        );
 
-    double sum3 = 0.0;
+    // stats
+    std::vector<double> sortedTimes = times;
 
-    auto start3 = Clock::now();
+    std::sort(
+        sortedTimes.begin(),
+        sortedTimes.end()
+    );
 
-    for (int i = 0; i < N; ++i) {
-        double x = -3.0 + 6.0 * i / N;
-        sum3 += logisticCubicCDFAppoximation(x);
+    double median;
+
+    if (measuredRuns % 2 == 0) {
+        median =
+            (
+                sortedTimes[measuredRuns / 2 - 1]
+                +
+                sortedTimes[measuredRuns / 2]
+            )
+            / 2.0;
+    }
+    else {
+        median =
+            sortedTimes[measuredRuns / 2];
     }
 
-    auto end3 = Clock::now();
+    double mean =
+        std::accumulate(
+            times.begin(),
+            times.end(),
+            0.0
+        )
+        / measuredRuns;
 
-    std::chrono::duration<double, std::milli> elapsed1 =
-        end1 - start1;
+    double minimum =
+        *std::min_element(
+            times.begin(),
+            times.end()
+        );
 
-    std::chrono::duration<double, std::milli> elapsed2 =
-        end2 - start2;
+    double maximum =
+        *std::max_element(
+            times.begin(),
+            times.end()
+        );
 
-    std::chrono::duration<double, std::milli> elapsed3 =
-        end3 - start3;
+    double nsPerCall =
+        median * 1'000'000.0 / N;
 
-    
-    std::cout << std::setprecision(17);
-    std::cout << "std::erfc: " << elapsed1.count() << " ms\n";
-    std::cout << "Taylor:    " << elapsed2.count() << " ms\n";
-    std::cout << "LogCubic:  " << elapsed3.count() << "ms\n";
-    std::cout << "std:       " << normalCDF(5) << "\n";
-    std::cout << "Speedup1:  "
-              << elapsed1.count() / elapsed2.count()
-              << "x\n";
-    
+    return {
+        median,
+        mean,
+        minimum,
+        maximum,
+        nsPerCall,
+        checksum
+    };
+}
 
-    // Prevent compiler from deleting calculations
-    std::cout << "Checksums: " << sum1 << " " << sum2 << " " << sum3 << '\n';
+std::vector<double> createInputs(std::size_t N) {
 
-    std::cout << 1 / std::sqrt(2.0) << "\n";
+    std::vector<double> inputs(N);
+
+    for (std::size_t i = 0; i < N; ++i) {
+
+        // Deterministic, mixed values roughly in [-6, 6]
+        double x =
+            3.0 * std::sin(i * 0.017)
+            +
+            2.0 * std::sin(i * 0.031)
+            +
+            1.0 * std::sin(i * 0.071);
+
+        inputs[i] = x;
+    }
+
+    return inputs;
+}
+
+
+void printBenchmark(
+    const std::string& name,
+    const BenchmarkResult& result
+) {
+    std::cout << "\n"
+              << name
+              << '\n';
+
+    std::cout << "-----------------------------\n";
+
+    std::cout << std::fixed
+              << std::setprecision(3);
+
+    std::cout << std::left
+              << std::setw(18)
+              << "Median:"
+              << result.medianMs
+              << " ms\n";
+
+    std::cout << std::setw(18)
+              << "Mean:"
+              << result.meanMs
+              << " ms\n";
+
+    std::cout << std::setw(18)
+              << "Minimum:"
+              << result.minMs
+              << " ms\n";
+
+    std::cout << std::setw(18)
+              << "Maximum:"
+              << result.maxMs
+              << " ms\n";
+
+    std::cout << std::setw(18)
+              << "ns / call:"
+              << result.nsPerCall
+              << '\n';
+
+    std::cout << std::setprecision(10);
+
+    std::cout << std::setw(18)
+              << "Checksum:"
+              << result.checksum
+              << '\n';
+}
+
+
+int main() {
+
+    constexpr std::size_t N = 10'000'000;
+
+    std::vector<double> inputs =
+        createInputs(N);
+
+
+    auto stdResult =
+    benchmarkCDF<normalCDF>(inputs);
+
+    auto polyResult =
+        benchmarkCDF<polynomialRational>(inputs);
+
+    auto logisticResult =
+        benchmarkCDF<logisticCubicCDFAppoximation>(inputs);
+
+
+    printBenchmark(
+        "std::erfc",
+        stdResult
+    );
+
+    printBenchmark(
+        "Polynomial rational",
+        polyResult
+    );
+
+    printBenchmark(
+        "Logistic cubic",
+        logisticResult
+    );
+
+
+    std::cout
+        << "\nPolynomial speedup: "
+        << stdResult.medianMs
+           / polyResult.medianMs
+        << "x\n";
+
 
     return 0;
 }
-
+    
