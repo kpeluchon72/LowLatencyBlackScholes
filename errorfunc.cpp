@@ -1,14 +1,11 @@
-#include <iostream>
+#include "errorfunc.hpp"
+
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <iomanip>
-#include <immintrin.h>
-#include <algorithm>
-#include <chrono>
+#include <iostream>
 #include <numeric>
-#include <string>
-#include <vector>
-
 
 constexpr double INVERSE_SQRT2 = 0.70710678118654746;
 
@@ -17,7 +14,6 @@ double normalCDF(double x) {
         -x * INVERSE_SQRT2
     );
 }
-
 //taylor expansion - slow under lots of calls
 double normalCDFfast(double x) {
     constexpr double twoOverSqrtPi = 1.1283791670955126;
@@ -37,44 +33,8 @@ double normalCDFfast(double x) {
 
 }
 
-// Polynomial rational approximation, fast and fairly accurate, 
-// more than enough precision for black scholes computations
-inline double polynomialRational(double x) {
-    constexpr double INV_SQRT_2PI =
-        0.3989422804014327;
-
-    constexpr double p  = 0.2316419;
-    constexpr double b1 = 0.319381530;
-    constexpr double b2 = -0.356563782;
-    constexpr double b3 = 1.781477937;
-    constexpr double b4 = -1.821255978;
-    constexpr double b5 = 1.330274429;
-
-    if (x >= 6.0)
-        return 1.0;
-
-    if (x <= -6.0)
-        return 0.0;
-
-    bool negative = x < 0.0;
-
-    double z = std::abs(x);
-
-    double t = 1.0 / (1 + p * z);
-
-    double poly = t*(b1 + t*(b2 + t*(b3 + t*(b4 + b5*t))));
-    double pdf = INV_SQRT_2PI * std::exp(-0.5 * z * z);
-
-    double cdf = 1 - pdf*poly;
-
-    return negative ? 1.0 - cdf : cdf;
-
-}
-
-
-
 // logistic cubic cdf approximation but loses a lot more accuracy
-inline double logisticCubicCDFAppoximation(double x) {
+double logisticCubicCDFAppoximation(double x) {
     constexpr double A = 1.59760287;
     constexpr double B = 0.07056410;
 
@@ -87,18 +47,8 @@ inline double logisticCubicCDFAppoximation(double x) {
 }
 
 
-struct BenchmarkResult {
-    double medianMs;
-    double meanMs;
-    double minMs;
-    double maxMs;
-    double nsPerCall;
-    double checksum;
-};
-
-
 template <double (*CDF)(double)>
-BenchmarkResult benchmarkCDF(
+CDFBenchmarkResult benchmarkCDF(
     const std::vector<double>& inputs,
     int warmupRuns = 3,
     int measuredRuns = 15
@@ -223,7 +173,7 @@ std::vector<double> createInputs(std::size_t N) {
 
 void printBenchmark(
     const std::string& name,
-    const BenchmarkResult& result
+    const CDFBenchmarkResult& result
 ) {
     std::cout << "\n"
               << name
@@ -281,7 +231,7 @@ int main() {
     benchmarkCDF<normalCDF>(inputs);
 
     auto polyResult =
-        benchmarkCDF<polynomialRational>(inputs);
+        benchmarkCDF<polynomialRationalCDF>(inputs);
 
     auto logisticResult =
         benchmarkCDF<logisticCubicCDFAppoximation>(inputs);
@@ -311,4 +261,3 @@ int main() {
 
     return 0;
 }
-    

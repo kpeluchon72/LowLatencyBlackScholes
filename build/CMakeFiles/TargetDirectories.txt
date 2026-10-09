@@ -1,3 +1,4 @@
 C:/Users/kevpd/Desktop/CodingProjects/Quant/LowLatencyBS/build/CMakeFiles/main.dir
+C:/Users/kevpd/Desktop/CodingProjects/Quant/LowLatencyBS/build/CMakeFiles/errorfunc.dir
 C:/Users/kevpd/Desktop/CodingProjects/Quant/LowLatencyBS/build/CMakeFiles/ALL_BUILD.dir
 C:/Users/kevpd/Desktop/CodingProjects/Quant/LowLatencyBS/build/CMakeFiles/ZERO_CHECK.dir

@@ -11,15 +11,25 @@ add_executable(main
     pricing3.cpp
 )
 
-target_compile_features(main PRIVATE cxx_std_17)
+add_executable(errorfunc
+    errorfunc.cpp
+)
+
+foreach(target main errorfunc)
+    target_compile_features(${target} PRIVATE cxx_std_17)
+endforeach()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(main PRIVATE
-        $<$<CONFIG:Release>:-O3>
-        -march=native
-    )
+    foreach(target main errorfunc)
+        target_compile_options(${target} PRIVATE
+            $<$<CONFIG:Release>:-O3>
+            -march=native
+        )
+    endforeach()
 elseif(MSVC)
-    target_compile_options(main PRIVATE
-        $<$<CONFIG:Release>:/O2>
-    )
+    foreach(target main errorfunc)
+        target_compile_options(${target} PRIVATE
+            $<$<CONFIG:Release>:/O2>
+        )
+    endforeach()
 endif()
