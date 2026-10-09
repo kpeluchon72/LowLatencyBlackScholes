@@ -1,10 +1,14 @@
 #include "pricing1.hpp"
 
+namespace {
+
 double normalCDF(double x) {
     return 0.5 * std::erfc(
         -x / std::sqrt(2.0)
     );
 }
+
+} // namespace
 
 double blackScholesCall(
     double S,

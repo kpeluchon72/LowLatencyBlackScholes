@@ -6,8 +6,6 @@
 #include <cmath>
 #include <cstddef>
 
-double normalCDF(double x);
-
 double blackScholesCall(
     double S,
     double K,

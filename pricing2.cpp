@@ -1,7 +1,17 @@
 #include "pricing2.hpp"
-#include "pricing1.hpp"
 
 #include <cmath>
+
+namespace {
+
+double normalCDF(double x) {
+    return 0.5 * std::erfc(
+        -x / std::sqrt(2.0)
+    );
+}
+
+} // namespace
+
 
 PreparedOption prepareOption(const Option& option, double r)
 {

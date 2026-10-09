@@ -16,6 +16,9 @@
     <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\pricing2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\pricing3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\kevpd\Desktop\CodingProjects\Quant\LowLatencyBS\CMakeLists.txt" />

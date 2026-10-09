@@ -4,6 +4,7 @@
 
 #include <vector>
 
+
 struct PreparedOption {
     double K;
     double logK;

@@ -309,7 +309,6 @@ int main() {
            / polyResult.medianMs
         << "x\n";
 
-
     return 0;
 }
     
